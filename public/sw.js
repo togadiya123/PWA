@@ -135,22 +135,16 @@ self.addEventListener('fetch', function (event) {
 
 const sendMsg = async ({token}) => {
     console.log({token});
-    await fetch('https://fcm.googleapis.com/v1/projects/pwa-gram-358111/messages:send', {
+    await fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer -rZIUswe7HlkvurOVR-nlqaPqqGtqhIsW0ZX42xYFr4',
+            'Authorization': 'key=AAAAu8FFrfU:APA91bGRpvDT6lT9wI4goIa70gK7durQ69wgKzS2QhWjP3Ktp45ns3e_OpegOkXJ74NFSoePPgKCndWJQ9CvRYxhHobUpaZN_D-NuvO422F2Y4bI6b0dRbpnctlGHzEts9rsj56tWfI0',
         },
         body: JSON.stringify({
-            "Message": {
-                "token": token,
-                "data": {
-                    "score": "5x1",
-                    "time": "15:10"
-                },
-                "android": {
-                    "direct_boot_ok": true,
-                },
+            "to" : token,
+            "notification" : {
+                "title" : "Testing"
             }
         }),
     })
@@ -175,7 +169,7 @@ const sendNotification = async (data) => {
 
     await tokens.json().then(data => {
         return Object.keys(data).forEach(async (key) => {
-            // await sendMsg({data, token: data[key].token});
+            await sendMsg({data, token: data[key].token});
         })
     });
 
@@ -188,9 +182,9 @@ const sendNotification = async (data) => {
     // };
     //
     // const vapidKey = "BO_tIZ75ghZQoYa5UhTRg0JlGEmyDUyLgQzhAkjBumCrtbYdCq1PRr8Dx56b95deSCKoXf3TpmZy0bQqukVDgtI"
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
-    console.log({firebase,messaging })
+    // firebase.initializeApp(firebaseConfig);
+    // const messaging = firebase.messaging();
+    // console.log({firebase,messaging })
 
     //
     // console.log({messaging,message,tokenArray,firebase});
