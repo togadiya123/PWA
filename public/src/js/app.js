@@ -50,55 +50,67 @@ const displayConfirmNotification = () => {
 const askForNotificationPermission = () => {
     try {
         const firebaseConfig = {
-            apiKey: "AIzaSyDOCAbC123dEf456GhI789jKl01-MnO",
-            authDomain: "myapp-project-123.firebaseapp.com",
-            databaseURL: "https://myapp-project-123.firebaseio.com",
-            projectId: "myapp-project-123",
-            storageBucket: "myapp-project-123.appspot.com",
-            messagingSenderId: "65211879809",
-            appId: "1:65211879909:web:3ae38ef1cdcb2e01fe5f0c",
+            apiKey: "AIzaSyBOdSFywm10P194ktby-a-1DkZV9ZUHMOA",
+            authDomain: "pwa-gram-358111.firebaseapp.com",
+            databaseURL: "https://pwa-gram-358111-default-rtdb.firebaseio.com",
+            projectId: "pwa-gram-358111",
+            storageBucket: "pwa-gram-358111.appspot.com",
+            messagingSenderId: "806401453557",
+            appId: "1:806401453557:web:1a2a2a8221a840fd8384bc",
+            measurementId: "G-5TC1R7V843"
         };
+
+        const vapidKey = "BO_tIZ75ghZQoYa5UhTRg0JlGEmyDUyLgQzhAkjBumCrtbYdCq1PRr8Dx56b95deSCKoXf3TpmZy0bQqukVDgtI"
+
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
+        console.log({messaging});
         messaging.requestPermission().then(async ()=>{
-            const token = await messaging.getToken();
-            console.log(token);
+            const token = await messaging.getToken(vapidKey);
+            await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({token})
+            }).then(function(res) {console.log("token saved")})
         })
     } catch (err) {
 
     }
-    if ('serviceWorker' in navigator) {
-        return;
-    }
-    navigator.serviceWorker.ready.then(async (sw) => {
-        try {
-            const sub = await sw.pushManager.getSubscription();
-            if (sub) {
-
-            } else {
-                const vapidPublicKey = "BGiXAD1DfL0y6Xn5zsD3IImAm8uPP1JdanvYKkCFpZQ2YiT4S4X7t3kXhghdoLN0bJCcBg3E1Oy7Rye1vyG6vGs";
-                const convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
-                const newSub = await sw.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: convertedVapidPublicKey
-                });
-                await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/subscriptions.json', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(newSub)
-                }).then((res) => {
-                    if (res.ok) {
-                        displayConfirmNotification();
-                    }
-                })
-            }
-        } catch (err) {
-            console.log(err);
-        }
-    })
+    // if ('serviceWorker' in navigator) {
+    //     return;
+    // }
+    // navigator.serviceWorker.ready.then(async (sw) => {
+    //     try {
+    //         const sub = await sw.pushManager.getSubscription();
+    //         if (sub) {
+    //
+    //         } else {
+    //             const vapidPublicKey = "BGiXAD1DfL0y6Xn5zsD3IImAm8uPP1JdanvYKkCFpZQ2YiT4S4X7t3kXhghdoLN0bJCcBg3E1Oy7Rye1vyG6vGs";
+    //             const convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+    //             const newSub = await sw.pushManager.subscribe({
+    //                 userVisibleOnly: true,
+    //                 applicationServerKey: convertedVapidPublicKey
+    //             });
+    //             await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/subscriptions.json', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     'Accept': 'application/json'
+    //                 },
+    //                 body: JSON.stringify(newSub)
+    //             }).then((res) => {
+    //                 if (res.ok) {
+    //                     displayConfirmNotification();
+    //                 }
+    //             })
+    //         }
+    //     } catch (err) {
+    //         console.log(err);
+    //     }
+    // })
 }
 
 // const askForNotificationPermission = () => {
