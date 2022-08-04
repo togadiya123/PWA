@@ -47,7 +47,26 @@ const displayConfirmNotification = () => {
     }
 }
 
-const configurePushSubscription = () => {
+const askForNotificationPermission = () => {
+    try {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOCAbC123dEf456GhI789jKl01-MnO",
+            authDomain: "myapp-project-123.firebaseapp.com",
+            databaseURL: "https://myapp-project-123.firebaseio.com",
+            projectId: "myapp-project-123",
+            storageBucket: "myapp-project-123.appspot.com",
+            messagingSenderId: "65211879809",
+            appId: "1:65211879909:web:3ae38ef1cdcb2e01fe5f0c",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+        messaging.requestPermission().then(async ()=>{
+            const token = await messaging.getToken();
+            console.log(token);
+        })
+    } catch (err) {
+
+    }
     if ('serviceWorker' in navigator) {
         return;
     }
@@ -82,17 +101,17 @@ const configurePushSubscription = () => {
     })
 }
 
-const askForNotificationPermission = () => {
-    Notification.requestPermission().then((result) => {
-        if (result === 'granted') {
-            console.log('Notification permission granted.');
-            // displayConfirmNotification();
-            configurePushSubscription();
-        } else {
-            console.log('Notification permission denied.');
-        }
-    })
-}
+// const askForNotificationPermission = () => {
+//     Notification.requestPermission().then((result) => {
+//         if (result === 'granted') {
+//             console.log('Notification permission granted.');
+//             // displayConfirmNotification();
+//             configurePushSubscription();
+//         } else {
+//             console.log('Notification permission denied.');
+//         }
+//     })
+// }
 
 if ('Notification' in window) {
     console.log({enableNotificationsButton});
