@@ -26,18 +26,18 @@ window.addEventListener('beforeinstallprompt', function (event) {
 const displayConfirmNotification = () => {
     if ('serviceWorker' in navigator) {
         const options = {
-            body: 'You\'ve subscribed to my notifications service from SW.',
+            body: 'You\'ve subscribed to my notifications service.',
             icon: '/src/images/icons/app-icon-96x96.png',
             image: '/src/images/sf-boat.jpg',
             dir: 'ltr',
             lang: 'en-US',
-            variant: [100,50,200],
+            variant: [100, 50, 200],
             badge: '/src/images/icons/app-icon-96x96.png',
             tag: 'confirm-notification',
             renotify: true,
             actions: [
-                { action: 'confirm', title: 'Okay', icon: '/src/images/icons/app-icon-96x96.png' },
-                { action: 'cancel', title: 'Cancel', icon: '/src/images/icons/app-icon-96x96.png' }
+                {action: 'confirm', title: 'Okay', icon: '/src/images/icons/app-icon-96x96.png'},
+                {action: 'cancel', title: 'Cancel', icon: '/src/images/icons/app-icon-96x96.png'}
             ]
         }
         navigator.serviceWorker.ready.then(async (sw) => {
@@ -48,15 +48,36 @@ const displayConfirmNotification = () => {
 }
 
 const configurePushSubscription = () => {
-    if('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator) {
         return;
     }
     navigator.serviceWorker.ready.then(async (sw) => {
-        const sub = await sw.pushManager.getSubscription();
-        if(sub) {
+        try {
+            const sub = await sw.pushManager.getSubscription();
+            if (sub) {
 
-        } else {
-            await sw.pushManager.subscribe({userVisibleOnly : true});
+            } else {
+                const vapidPublicKey = "BGiXAD1DfL0y6Xn5zsD3IImAm8uPP1JdanvYKkCFpZQ2YiT4S4X7t3kXhghdoLN0bJCcBg3E1Oy7Rye1vyG6vGs";
+                const convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+                const newSub = await sw.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidPublicKey
+                });
+                await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/subscriptions.json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(newSub)
+                }).then((res) => {
+                    if (res.ok) {
+                        displayConfirmNotification();
+                    }
+                })
+            }
+        } catch (err) {
+            console.log(err);
         }
     })
 }
