@@ -64,7 +64,6 @@ const askForNotificationPermission = () => {
 
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
-        console.log({messaging});
         messaging.requestPermission().then(async ()=>{
             const token = await messaging.getToken(vapidKey);
             await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {

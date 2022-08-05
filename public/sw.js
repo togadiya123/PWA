@@ -3,6 +3,7 @@ importScripts('/src/js/utility.js');
 importScripts('https://www.gstatic.com/firebasejs/7.18.0/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/7.18.0/firebase-analytics.js');
 importScripts('https://www.gstatic.com/firebasejs/7.18.0/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/8.2.2/firebase-storage.js');
 
 var CACHE_STATIC_NAME = 'static-v23';
 var CACHE_DYNAMIC_NAME = 'dynamic-v2';
@@ -23,19 +24,6 @@ var STATIC_FILES = [
     'https://fonts.googleapis.com/icon?family=Material+Icons',
     'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
 ];
-
-// function trimCache(cacheName, maxItems) {
-//   caches.open(cacheName)
-//     .then(function (cache) {
-//       return cache.keys()
-//         .then(function (keys) {
-//           if (keys.length > maxItems) {
-//             cache.delete(keys[0])
-//               .then(trimCache(cacheName, maxItems));
-//           }
-//         });
-//     })
-// }
 
 self.addEventListener('install', function (event) {
     console.log('[Service Worker] Installing Service Worker ...', event);
@@ -152,6 +140,19 @@ const sendMsg = async ({token}) => {
 
 const sendNotification = async (data) => {
 
+    const tokens = await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {
+        method: 'GET',
+    });
+
+    await tokens.json().then(data => {
+        return Object.keys(data).forEach(async (key) => {
+            await sendMsg({data, token: data[key].token});
+        })
+    });
+}
+
+self.addEventListener('sync', function (event) {
+    console.log('[Service Worker] Background syncing', event);
     const firebaseConfig = {
         apiKey: "AIzaSyBOdSFywm10P194ktby-a-1DkZV9ZUHMOA",
         authDomain: "pwa-gram-358111.firebaseapp.com",
@@ -162,70 +163,58 @@ const sendNotification = async (data) => {
         appId: "1:806401453557:web:1a2a2a8221a840fd8384bc",
         measurementId: "G-5TC1R7V843"
     };
-
-    const tokens = await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {
-        method: 'GET',
-    });
-
-    await tokens.json().then(data => {
-        return Object.keys(data).forEach(async (key) => {
-            await sendMsg({data, token: data[key].token});
-        })
-    });
+    firebase.initializeApp(firebaseConfig);
 
 
-    // const message = {
-    //     notification: {
-    //         title: data.title
-    //     },
-    //     tokens : tokenArray
-    // };
-    //
-    // const vapidKey = "BO_tIZ75ghZQoYa5UhTRg0JlGEmyDUyLgQzhAkjBumCrtbYdCq1PRr8Dx56b95deSCKoXf3TpmZy0bQqukVDgtI"
-    // firebase.initializeApp(firebaseConfig);
-    // const messaging = firebase.messaging();
-    // console.log({firebase,messaging })
+    const metadata = {
+        contentType: 'image/jpeg',
+    };
 
-    //
-    // console.log({messaging,message,tokenArray,firebase});
-
-    // getMessaging().send(message).then((res)=> {
-    //     console.log({res});
-    // }).catch(err => {
-    //     console.log({err});
-    // });
-}
-
-self.addEventListener('sync', function (event) {
-    console.log('[Service Worker] Background syncing', event);
     if (event.tag === 'sync-new-posts') {
         console.log('[Service Worker] Syncing new Posts');
         event.waitUntil(
             readAllData('sync-posts')
-                .then(function (data) {
+                .then(async function (data) {
                     for (let dt of data) {
-                        fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/posts.json', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                id: dt.id,
-                                title: dt.title,
-                                location: dt.location,
-                                image: 'https://firebasestorage.googleapis.com/v0/b/pwa-gram-358111.appspot.com/o/Doctor%20Strange%2C%20yin%20yuming.png?alt=media&token=0042a519-c28e-4aa7-8d01-84f5b0ea324d'
-                            })
-                        })
-                            .then(function (res) {
-                                sendNotification(dt);
-                                if (res.ok) {
-                                    deleteItemFromData('sync-posts', dt.id); // Isn't working correctly!
-                                }
-                            })
-                            .catch(function (err) {
-                                console.log('Error while sending data', err);
-                            });
+
+                        console.log(dt.image,dt);
+
+                        const storageRef = firebase.storage().ref();
+                        storageRef.put(dt.picture).then((snapshot) => {
+                            console.log('Uploaded a blob or file!');
+                        });
+
+                        // uploadTask.on('',()=>{
+                        //     console.log('uploading');
+                        // },(error)=>{
+                        //     console.log({error});
+                        // },()=>{
+                        //     console.log('Uploaded');
+                        //     uploadTask.snapshot.ref.getDownloadURL().then(async function(downloadURL) {
+                        //         await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/posts.json', {
+                        //             method: 'POST',
+                        //             headers: {
+                        //                 'Content-Type': 'application/json',
+                        //                 'Accept': 'application/json'
+                        //             },
+                        //             body: JSON.stringify({
+                        //                 id: dt.id,
+                        //                 title: dt.title,
+                        //                 location: dt.location,
+                        //                 image: downloadURL,
+                        //             })
+                        //         })
+                        //             .then(async function (res) {
+                        //                 await sendNotification(dt);
+                        //                 if (res.ok) {
+                        //                     deleteItemFromData('sync-posts', dt.id); // Isn't working correctly!
+                        //                 }
+                        //             })
+                        //             .catch(function (err) {
+                        //                 console.log('Error while sending data', err);
+                        //             });
+                        //     })
+                        // });
                     }
 
                 })
