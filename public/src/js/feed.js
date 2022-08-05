@@ -86,11 +86,16 @@ captureButton.addEventListener('click', function (event) {
   videoPlayer.srcObject.getVideoTracks().forEach(function (track) {
     track.stop();
   });
-  picture = dataURItoBlob(canvasElement.toDataURL());
+  picture = canvasElement.toDataURL();
 });
 
 imagePicker.addEventListener('change', function (event) {
-  picture = event.target.files[0];
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    picture = reader.result
+  };
+  reader.readAsDataURL(file);
 });
 
 function openCreatePostModal() {
@@ -286,7 +291,7 @@ function sendData() {
       id: new Date().toISOString(),
       title: titleInput.value,
       location: locationInput.value,
-      image: 'https://firebasestorage.googleapis.com/v0/b/pwa-gram-358111.appspot.com/o/Doctor%20Strange%2C%20yin%20yuming.png?alt=media&token=0042a519-c28e-4aa7-8d01-84f5b0ea324d'
+      image: picture,
     })
   })
     .then(function(res) {
