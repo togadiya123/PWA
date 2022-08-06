@@ -9,10 +9,10 @@ const CACHE_DYNAMIC_NAME = 'dynamic-v2';
 const STATIC_FILES = ['/', '/index.html', '/offline.html', '/src/js/app.js', '/src/js/feed.js', '/src/js/idb.js', '/src/js/promise.js', '/src/js/fetch.js', '/src/js/material.min.js', '/src/css/app.css', '/src/css/feed.css', '/src/images/main-image.jpg', 'https://fonts.googleapis.com/css?family=Roboto:400,700', 'https://fonts.googleapis.com/icon?family=Material+Icons', 'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'];
 
 /* Event listener would be called when SW install in device. */
-self.addEventListener('install',  async (event)=> {
+self.addEventListener('install', async (event) => {
     console.log('[Service Worker] Installing Service Worker ...', event);
     await event.waitUntil(caches.open(CACHE_STATIC_NAME)
-        .then( async (cache) => {
+        .then(async (cache) => {
             console.log('[Service Worker] Precaching App Shell');
             await cache.addAll(STATIC_FILES);
         }))
@@ -95,21 +95,24 @@ self.addEventListener('fetch', function (event) {
 });
 
 /* Sending Push Notifications. */
-const sendMsg = async ({token}) => {
+const sendMsg = async ({token,post}) => {
     await fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'POST', headers: {
             'Content-Type': 'application/json',
             'Authorization': 'key=AAAAu8FFrfU:APA91bGRpvDT6lT9wI4goIa70gK7durQ69wgKzS2QhWjP3Ktp45ns3e_OpegOkXJ74NFSoePPgKCndWJQ9CvRYxhHobUpaZN_D-NuvO422F2Y4bI6b0dRbpnctlGHzEts9rsj56tWfI0',
         }, body: JSON.stringify({
-            "to": token, "notification": {
-                "title": "Testing"
+            "to": token,
+            "notification": {
+                "title": post.title,
+                "body": `New Post Added !\n ${post.title} is title of post and post location is ${post.location}.\nClick here to see the post.`,
+                "click_action": "http://localhost:8080/",
             }
         }),
     })
 }
 
 /* Getting register token and push notification. */
-const sendNotification = async (data) => {
+const sendNotification = async (post) => {
 
     const tokens = await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {
         method: 'GET',
@@ -117,7 +120,7 @@ const sendNotification = async (data) => {
 
     await tokens.json().then(data => {
         return Object.keys(data || {}).forEach(async (key) => {
-            await sendMsg({data, token: data[key].token});
+            await sendMsg({post, token: data[key].token});
         })
     });
 }
@@ -136,7 +139,11 @@ self.addEventListener('sync', function (event) {
                         method: 'POST', headers: {
                             'Content-Type': 'application/json', 'Accept': 'application/json'
                         }, body: JSON.stringify({
-                            id: dt.id, title: dt.title, location: dt.location, image: dt.picture,
+                            id: dt.id,
+                            title: dt.title,
+                            location: dt.location,
+                            image: dt.picture,
+                            rawLocation: dt.rawLocation,
                         })
                     })
                         .then(async function (res) {

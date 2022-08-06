@@ -20,6 +20,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
     const notificationTitle = "Background Message Title";
     const notificationOptions = {
         body: "Background Message body.",
+        image: "https://foo.bar/pizza-monster.png"
     };
 
     return self.registration.showNotification(
