@@ -1,10 +1,12 @@
-var deferredPrompt;
+let deferredPrompt;
 const enableNotificationsButton = document.querySelectorAll('.enable-notifications');
 
 if (!window.Promise) {
     window.Promise = Promise;
 }
 
+
+/* Adding SW in device. */
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker
         .register('/sw.js')
@@ -23,12 +25,13 @@ window.addEventListener('beforeinstallprompt', function (event) {
     return false;
 });
 
+
+/* Notification when user give permission for push notification  */
 const displayConfirmNotification = () => {
     if ('serviceWorker' in navigator) {
         const options = {
             body: 'You\'ve subscribed to my notifications service.',
             icon: '/src/images/icons/app-icon-96x96.png',
-            image: '/src/images/sf-boat.jpg',
             dir: 'ltr',
             lang: 'en-US',
             variant: [100, 50, 200],
@@ -36,8 +39,8 @@ const displayConfirmNotification = () => {
             tag: 'confirm-notification',
             renotify: true,
             actions: [
-                {action: 'confirm', title: 'Okay', icon: '/src/images/icons/app-icon-96x96.png'},
-                {action: 'cancel', title: 'Cancel', icon: '/src/images/icons/app-icon-96x96.png'}
+                {action: 'confirm', title: 'Okay'},
+                {action: 'cancel', title: 'Cancel'}
             ]
         }
         navigator.serviceWorker.ready.then(async (sw) => {
@@ -47,6 +50,7 @@ const displayConfirmNotification = () => {
     }
 }
 
+/* Asking notification permission. */
 const askForNotificationPermission = () => {
     try {
         const firebaseConfig = {
@@ -64,7 +68,7 @@ const askForNotificationPermission = () => {
 
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
-        messaging.requestPermission().then(async ()=>{
+        messaging.requestPermission().then(async () => {
             const token = await messaging.getToken(vapidKey);
             await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {
                 method: 'POST',
@@ -73,56 +77,14 @@ const askForNotificationPermission = () => {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({token})
-            }).then(function(res) {console.log("token saved")})
+            }).then(function (res) {
+                displayConfirmNotification();
+            })
         })
     } catch (err) {
 
     }
-    // if ('serviceWorker' in navigator) {
-    //     return;
-    // }
-    // navigator.serviceWorker.ready.then(async (sw) => {
-    //     try {
-    //         const sub = await sw.pushManager.getSubscription();
-    //         if (sub) {
-    //
-    //         } else {
-    //             const vapidPublicKey = "BGiXAD1DfL0y6Xn5zsD3IImAm8uPP1JdanvYKkCFpZQ2YiT4S4X7t3kXhghdoLN0bJCcBg3E1Oy7Rye1vyG6vGs";
-    //             const convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
-    //             const newSub = await sw.pushManager.subscribe({
-    //                 userVisibleOnly: true,
-    //                 applicationServerKey: convertedVapidPublicKey
-    //             });
-    //             await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/subscriptions.json', {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                     'Accept': 'application/json'
-    //                 },
-    //                 body: JSON.stringify(newSub)
-    //             }).then((res) => {
-    //                 if (res.ok) {
-    //                     displayConfirmNotification();
-    //                 }
-    //             })
-    //         }
-    //     } catch (err) {
-    //         console.log(err);
-    //     }
-    // })
 }
-
-// const askForNotificationPermission = () => {
-//     Notification.requestPermission().then((result) => {
-//         if (result === 'granted') {
-//             console.log('Notification permission granted.');
-//             // displayConfirmNotification();
-//             configurePushSubscription();
-//         } else {
-//             console.log('Notification permission denied.');
-//         }
-//     })
-// }
 
 if ('Notification' in window) {
     console.log({enableNotificationsButton});

@@ -4,20 +4,22 @@ importScripts('https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/7.15.5/firebase-analytics.js');
 importScripts('https://www.gstatic.com/firebasejs/7.15.5/firebase-messaging.js');
 
-var CACHE_STATIC_NAME = 'static-v23';
-var CACHE_DYNAMIC_NAME = 'dynamic-v2';
-var STATIC_FILES = ['/', '/index.html', '/offline.html', '/src/js/app.js', '/src/js/feed.js', '/src/js/idb.js', '/src/js/promise.js', '/src/js/fetch.js', '/src/js/material.min.js', '/src/css/app.css', '/src/css/feed.css', '/src/images/main-image.jpg', 'https://fonts.googleapis.com/css?family=Roboto:400,700', 'https://fonts.googleapis.com/icon?family=Material+Icons', 'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'];
+const CACHE_STATIC_NAME = 'static-v23';
+const CACHE_DYNAMIC_NAME = 'dynamic-v2';
+const STATIC_FILES = ['/', '/index.html', '/offline.html', '/src/js/app.js', '/src/js/feed.js', '/src/js/idb.js', '/src/js/promise.js', '/src/js/fetch.js', '/src/js/material.min.js', '/src/css/app.css', '/src/css/feed.css', '/src/images/main-image.jpg', 'https://fonts.googleapis.com/css?family=Roboto:400,700', 'https://fonts.googleapis.com/icon?family=Material+Icons', 'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'];
 
-self.addEventListener('install', function (event) {
+/* Event listener would be called when SW install in device. */
+self.addEventListener('install',  async (event)=> {
     console.log('[Service Worker] Installing Service Worker ...', event);
-    event.waitUntil(caches.open(CACHE_STATIC_NAME)
-        .then(function (cache) {
+    await event.waitUntil(caches.open(CACHE_STATIC_NAME)
+        .then( async (cache) => {
             console.log('[Service Worker] Precaching App Shell');
-            cache.addAll(STATIC_FILES);
+            await cache.addAll(STATIC_FILES);
         }))
 });
 
-self.addEventListener('activate', function (event) {
+/* Event listener would be called when SW activate in device. */
+self.addEventListener('activate', async (event) => {
     console.log('[Service Worker] Activating Service Worker ....', event);
     event.waitUntil(caches.keys()
         .then(function (keyList) {
@@ -31,17 +33,19 @@ self.addEventListener('activate', function (event) {
     return self.clients.claim();
 });
 
+/* One common function to match the string */
 function isInArray(string, array) {
     var cachePath;
-    if (string.indexOf(self.origin) === 0) { // request targets domain where we serve the page from (i.e. NOT a CDN)
+    if (string.indexOf(self.origin) === 0) {
         console.log('matched ', string);
-        cachePath = string.substring(self.origin.length); // take the part of the URL AFTER the domain (e.g. after localhost:8080)
+        cachePath = string.substring(self.origin.length);
     } else {
-        cachePath = string; // store the full request (for CDNs)
+        cachePath = string;
     }
     return array.indexOf(cachePath) > -1;
 }
 
+/* Event listener would be called when SW fetch a something. */
 self.addEventListener('fetch', function (event) {
     console.log({event});
     var url = 'https://pwa-gram-358111-default-rtdb.firebaseio.com/posts.json';
@@ -90,6 +94,7 @@ self.addEventListener('fetch', function (event) {
     }
 });
 
+/* Sending Push Notifications. */
 const sendMsg = async ({token}) => {
     await fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'POST', headers: {
@@ -103,6 +108,7 @@ const sendMsg = async ({token}) => {
     })
 }
 
+/* Getting register token and push notification. */
 const sendNotification = async (data) => {
 
     const tokens = await fetch('https://pwa-gram-358111-default-rtdb.firebaseio.com/tokens.json', {
@@ -110,12 +116,13 @@ const sendNotification = async (data) => {
     });
 
     await tokens.json().then(data => {
-        return Object.keys(data).forEach(async (key) => {
+        return Object.keys(data || {}).forEach(async (key) => {
             await sendMsg({data, token: data[key].token});
         })
     });
 }
 
+/* Event listener would we called when API is syncing. */
 self.addEventListener('sync', function (event) {
     console.log('[Service Worker] Background syncing', event);
 
