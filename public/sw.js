@@ -10,22 +10,22 @@ const STATIC_FILES = ['/', '/index.html', '/offline.html', '/src/js/app.js', '/s
 
 /* Event listener would be called when SW install in device. */
 self.addEventListener('install', async (event) => {
-    console.log('[Service Worker] Installing Service Worker ...', event);
+    // console.log('[Service Worker] Installing Service Worker ...', event);
     await event.waitUntil(caches.open(CACHE_STATIC_NAME)
         .then(async (cache) => {
-            console.log('[Service Worker] Precaching App Shell');
+            // console.log('[Service Worker] Precaching App Shell');
             await cache.addAll(STATIC_FILES);
         }))
 });
 
 /* Event listener would be called when SW activate in device. */
 self.addEventListener('activate', async (event) => {
-    console.log('[Service Worker] Activating Service Worker ....', event);
+    // console.log('[Service Worker] Activating Service Worker ....', event);
     event.waitUntil(caches.keys()
         .then(function (keyList) {
             return Promise.all(keyList.map(function (key) {
                 if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
-                    console.log('[Service Worker] Removing old cache.', key);
+                    // console.log('[Service Worker] Removing old cache.', key);
                     return caches.delete(key);
                 }
             }));
@@ -37,7 +37,6 @@ self.addEventListener('activate', async (event) => {
 function isInArray(string, array) {
     var cachePath;
     if (string.indexOf(self.origin) === 0) {
-        console.log('matched ', string);
         cachePath = string.substring(self.origin.length);
     } else {
         cachePath = string;
@@ -47,7 +46,6 @@ function isInArray(string, array) {
 
 /* Event listener would be called when SW fetch a something. */
 self.addEventListener('fetch', function (event) {
-    console.log({event});
     var url = 'https://pwa-gram-358111-default-rtdb.firebaseio.com/posts.json';
     if (event.request.url.indexOf(url) > -1) {
         event.respondWith(fetch(event.request)
@@ -127,10 +125,10 @@ const sendNotification = async (post) => {
 
 /* Event listener would we called when API is syncing. */
 self.addEventListener('sync', function (event) {
-    console.log('[Service Worker] Background syncing', event);
+    // console.log('[Service Worker] Background syncing', event);
 
     if (event.tag === 'sync-new-posts') {
-        console.log('[Service Worker] Syncing new Posts');
+        // console.log('[Service Worker] Syncing new Posts');
         event.waitUntil(readAllData('sync-posts')
             .then(async function (data) {
                 for (let dt of data) {
@@ -153,7 +151,7 @@ self.addEventListener('sync', function (event) {
                             }
                         })
                         .catch(function (err) {
-                            console.log('Error while sending data', err);
+                            // console.log('Error while sending data', err);
                         });
                 }
 

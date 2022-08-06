@@ -27,12 +27,12 @@ locationBtn.addEventListener('click', function () {
     navigator.geolocation.getCurrentPosition(function (position) {
         locationBtn.style.display = 'inline';
         locationLoader.style.display = 'none';
-        console.log({position});
+        // console.log({position});
         fetchedLocation = {lat: position.coords.latitude, lng: position.coords.longitude};
         locationInput.value = 'In Somewhere';
         document.querySelector('#manual-location').classList.add('is-focused');
     }, function (err) {
-        console.log(err);
+        // console.log(err);
         locationBtn.style.display = 'inline';
         locationLoader.style.display = 'none';
         if (!sawAlert) {
@@ -109,12 +109,11 @@ function openCreatePostModal() {
         deferredPrompt.prompt();
 
         deferredPrompt.userChoice.then(function (choiceResult) {
-            console.log(choiceResult.outcome);
 
             if (choiceResult.outcome === 'dismissed') {
-                console.log('User cancelled installation');
+                // console.log('User cancelled installation');
             } else {
-                console.log('User added to home screen');
+                // console.log('User added to home screen');
             }
         });
 
@@ -187,7 +186,6 @@ fetch(url)
     })
     .then(function (data) {
         networkDataReceived = true;
-        console.log('From web', data);
         const dataArray = [];
         for (let key in data) {
             dataArray.push(data[key]);
@@ -199,7 +197,6 @@ if ('indexedDB' in window) {
     readAllData('posts')
         .then(function (data) {
             if (!networkDataReceived) {
-                console.log('From cache', data);
                 updateUI(data);
             }
         });
@@ -221,7 +218,6 @@ const sendData = async () => {
         })
     })
         .then(function (res) {
-            console.log('Sent data', res);
             updateUI();
         })
 }
@@ -256,7 +252,7 @@ form.addEventListener('submit', async (event) => {
                         snackbarContainer.MaterialSnackbar?.showSnackbar(data);
                     })
                     .catch(function (err) {
-                        console.log(err);
+                        // console.log(err);
                     });
             });
     } else {

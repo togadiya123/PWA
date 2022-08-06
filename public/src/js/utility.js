@@ -45,6 +45,6 @@ function deleteItemFromData(st, id) {
             return tx.complete;
         })
         .then(function () {
-            console.log('Item deleted!');
+            // console.log('Item deleted!');
         });
 }
